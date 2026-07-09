@@ -111,7 +111,6 @@ export default function HeroSection() {
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
-          onUpdate: fitText,
         },
       })
 
