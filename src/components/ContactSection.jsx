@@ -226,7 +226,7 @@ export default function ContactSection() {
           ))}
           <a
             href={lang === 'es' ? '/cv-es.pdf' : '/cv-en.pdf'}
-            download
+            download={lang === 'es' ? 'CV_RicardoMartinez_Backend.pdf' : 'CV_RicardoMartinez_Backend_EN.pdf'}
             style={{
               fontFamily: '"AldoTheApache","Bebas Neue",Impact,sans-serif',
               fontSize: 'clamp(1.4rem, 2.4vw, 2rem)',
