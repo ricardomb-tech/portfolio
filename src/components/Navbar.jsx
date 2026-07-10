@@ -3,7 +3,7 @@ import { gsap } from 'gsap'
 import { useLanguage } from '../i18n/LanguageContext'
 
 export default function Navbar() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const LINKS = [
     { id: 'home',     label: t.nav.home },
     { id: 'about',    label: t.nav.about },
@@ -99,20 +99,43 @@ export default function Navbar() {
           RM
         </div>
 
-        {/* Nav link */}
-        <a
-          href="#projects"
-          onClick={(e) => { e.preventDefault(); goTo('projects') }}
-          style={{
-            fontFamily: '"Bebas Neue", sans-serif',
-            fontSize: '0.85rem',
-            letterSpacing: '0.2em',
-            color: '#fff',
-            textDecoration: 'none',
-          }}
-        >
-          {t.nav.projects}
-        </a>
+        {/* Acciones derechas: proyectos + descargar CV */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+          <a
+            href="#projects"
+            onClick={(e) => { e.preventDefault(); goTo('projects') }}
+            style={{
+              fontFamily: '"Bebas Neue", sans-serif',
+              fontSize: '0.85rem',
+              letterSpacing: '0.2em',
+              color: '#fff',
+              textDecoration: 'none',
+            }}
+          >
+            {t.nav.projects}
+          </a>
+          <a
+            href={lang === 'es' ? '/cv-es.pdf' : '/cv-en.pdf'}
+            download
+            title={t.contact.downloadCV ?? 'Descargar CV'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              color: '#fff',
+              opacity: 0.75,
+              textDecoration: 'none',
+              transition: 'opacity 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = 1}
+            onMouseLeave={e => e.currentTarget.style.opacity = 0.75}
+          >
+            {/* Ícono descarga */}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3v13M7 11l5 5 5-5"/>
+              <path d="M4 20h16"/>
+            </svg>
+          </a>
+        </div>
       </nav>
 
       {/* Menú a pantalla completa — panel sólido, fuera del mix-blend-mode

@@ -356,7 +356,7 @@ export default function ProjectsSection() {
 
       // Reparto del scroll entre intro (transición), carrera y crecimiento final
       const introScroll = vh * 0.9
-      const GROW_SCROLL = vh * 0.7   // scroll dedicado al cuadro creciendo a pantalla completa
+      const GROW_SCROLL = vh * 0.35   // scroll dedicado al cuadro creciendo a pantalla completa
       // Colchón de scroll pineado DESPUÉS de que el efecto llega a p=1.
       // p=1 SIEMPRE coincide exactamente con el scroll `end` del ScrollTrigger
       // (así funciona scrub), así que agregar buffer solo a `end` no crea
@@ -367,7 +367,7 @@ export default function ProjectsSection() {
       // `anticipatePin` libera el pin unos ~150px antes de que el negro
       // termine de crecer, y el dino blanco se dibuja ya sin `position:
       // fixed` — rompiendo su posición en pantalla.
-      const END_BUFFER     = vh * 0.4
+      const END_BUFFER     = vh * 0.2
       const INTRO_DUR   = 0.55
       const RUN_START   = 0.55
       const RUN_DUR     = INTRO_DUR * (travel / introScroll)
@@ -674,10 +674,22 @@ export default function ProjectsSection() {
           </div>
         )}
 
-        {/* Bloque final */}
-        <div style={{ flex: '0 0 auto', width: '40vw', display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '3rem', paddingLeft: '1rem', pointerEvents: 'auto' }}>
-          <span style={{ fontFamily: '"AldoTheApache","Bebas Neue",Impact,sans-serif', fontSize: 'clamp(2rem,4vw,4rem)', color: 'rgba(0,0,0,0.12)', whiteSpace: 'nowrap' }}>{t.projects.more}</span>
-          <a href="https://github.com/ricardomb-tech" target="_blank" rel="noopener noreferrer" style={{ fontFamily: '"Inter",sans-serif', fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.3)', textDecoration: 'none', borderBottom: '1px solid rgba(0,0,0,0.15)', paddingBottom: '1px', width: 'fit-content' }}>github.com/ricardomb-tech →</a>
+        {/* Bloque final — donde termina el mundo del dino, justo antes de que
+            el cuadro (cardRef, arriba) empiece a crecer a pantalla completa.
+            Frase estilo terminal, igual que la del final en negro. */}
+        <div style={{ flex: '0 0 auto', width: '40vw', display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '3rem', paddingLeft: '1rem', pointerEvents: 'auto', marginBottom: '4rem' }}>
+          <span style={{
+            fontFamily: '"Courier New", Courier, monospace',
+            fontSize: '0.95rem',
+            letterSpacing: '0.06em',
+            color: 'rgba(0,0,0,0.32)',
+            whiteSpace: 'nowrap',
+          }}>
+            {'> ' + t.projects.worldEndPhrase}
+          </span>
+          <a href="https://github.com/ricardomb-tech" target="_blank" rel="noopener noreferrer" style={{ fontFamily: '"Inter",sans-serif', fontSize: '0.85rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)', textDecoration: 'none', borderBottom: '1px solid rgba(0,0,0,0.2)', paddingBottom: '2px', width: 'fit-content' }}>
+            github.com/ricardomb-tech →
+          </a>
         </div>
       </div>
 

@@ -35,7 +35,7 @@ const fieldLabelStyle = {
 }
 
 export default function ContactSection() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const sectionRef = useRef(null)
   const labelRef   = useRef(null)
   const headingRef = useRef(null)
@@ -202,7 +202,7 @@ export default function ContactSection() {
           </button>
         </form>
 
-        {/* Redes sociales */}
+        {/* Redes sociales + CV */}
         <div style={{ flex: '0 1 240px', display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
           <span style={fieldLabelStyle}>{t.contact.social}</span>
           {SOCIAL_LINKS.map(({ label, href }) => (
@@ -224,6 +224,22 @@ export default function ContactSection() {
               {label} →
             </a>
           ))}
+          <a
+            href={lang === 'es' ? '/cv-es.pdf' : '/cv-en.pdf'}
+            download
+            style={{
+              fontFamily: '"AldoTheApache","Bebas Neue",Impact,sans-serif',
+              fontSize: 'clamp(1.4rem, 2.4vw, 2rem)',
+              color: '#000',
+              textDecoration: 'none',
+              borderBottom: '1px solid rgba(0,0,0,0.15)',
+              paddingBottom: '2px',
+              width: 'fit-content',
+              marginTop: '0.4rem',
+            }}
+          >
+            {t.contact.downloadCV} ↓
+          </a>
         </div>
       </div>
 
@@ -231,6 +247,9 @@ export default function ContactSection() {
         marginTop: 'clamp(2rem, 5vw, 4rem)',
         paddingTop: '1.5rem',
         borderTop: '1px solid rgba(0,0,0,0.1)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         fontFamily: '"Inter", sans-serif',
         fontSize: '0.7rem',
         letterSpacing: '0.08em',
@@ -238,6 +257,31 @@ export default function ContactSection() {
         color: 'rgba(0,0,0,0.35)',
       }}>
         {t.contact.footer}
+
+        {/* Flecha hacia arriba */}
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Volver arriba"
+          style={{
+            background: 'none',
+            border: '1px solid rgba(0,0,0,0.15)',
+            cursor: 'pointer',
+            width: 40,
+            height: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'rgba(0,0,0,0.4)',
+            transition: 'border-color 0.2s, color 0.2s',
+            flexShrink: 0,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.5)'; e.currentTarget.style.color = '#000' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; e.currentTarget.style.color = 'rgba(0,0,0,0.4)' }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+          </svg>
+        </button>
       </div>
     </section>
   )
