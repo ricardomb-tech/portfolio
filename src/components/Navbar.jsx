@@ -1,15 +1,16 @@
 import { useRef, useState, useLayoutEffect } from 'react'
 import { gsap } from 'gsap'
-
-const LINKS = [
-  { id: 'home',     label: 'HOME' },
-  { id: 'about',    label: 'ABOUT' },
-  { id: 'skills',   label: 'SKILLS' },
-  { id: 'projects', label: 'PROJECTS' },
-  { id: 'outro',    label: 'CONTACT' },
-]
+import { useLanguage } from '../i18n/LanguageContext'
 
 export default function Navbar() {
+  const { t } = useLanguage()
+  const LINKS = [
+    { id: 'home',     label: t.nav.home },
+    { id: 'about',    label: t.nav.about },
+    { id: 'skills',   label: t.nav.skills },
+    { id: 'projects', label: t.nav.projects },
+    { id: 'contact',  label: t.nav.contact },
+  ]
   const [open, setOpen] = useState(false)
   const overlayRef = useRef(null)
   const itemRefs    = useRef([])
@@ -110,7 +111,7 @@ export default function Navbar() {
             textDecoration: 'none',
           }}
         >
-          PROJECTS
+          {t.nav.projects}
         </a>
       </nav>
 

@@ -1,16 +1,13 @@
 import { useRef, useState, useLayoutEffect } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useLanguage } from '../i18n/LanguageContext'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const PARAGRAPHS = [
-  'Soy desarrollador de software apasionado por crear soluciones innovadoras, limpias y eficientes. Me especializo en aplicaciones web y móviles, arquitecturas de microservicios y soluciones IoT, cuidando siempre la calidad del código y la experiencia del usuario.',
-  'Trabajo con tecnologías modernas y metodologías ágiles, y disfruto cada proyecto con dedicación, alegría y compromiso. Creo en la transparencia, el trabajo en equipo y en construir cosas que dejen algo bueno en la vida de las personas.',
-  'Mi meta es simple: seguir creciendo, aprender cada día y aportar valor con una sonrisa.',
-].map(p => p.split(' '))
-
 export default function OutroSection() {
+  const { t } = useLanguage()
+  const PARAGRAPHS = t.outro.bio.map(p => p.split(' '))
   const sectionRef = useRef(null)
   const labelRef   = useRef(null)
   const textRef    = useRef(null)
@@ -76,7 +73,7 @@ export default function OutroSection() {
           textTransform: 'uppercase',
         }}
       >
-        (Ricardo)
+        {t.outro.label}
       </span>
 
       {/* Texto — col izquierda */}
@@ -164,7 +161,7 @@ export default function OutroSection() {
               padding: '1rem',
             }}
           >
-            foto pendiente —
+            {t.outro.photoPending}
             <br />
             public/about-photo.jpg
           </div>

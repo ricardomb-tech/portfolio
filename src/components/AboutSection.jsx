@@ -2,14 +2,13 @@ import { useRef, useLayoutEffect } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import DarkMatterOrb from './DarkMatterOrb'
+import { useLanguage } from '../i18n/LanguageContext'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const PARAGRAPHS = [
-  'I am Ricardo Martinez, backend developer with over 3 years building scalable systems powered by AI and IoT.',
-].map(p => p.split(' '))
-
 export default function AboutSection() {
+  const { t } = useLanguage()
+  const PARAGRAPHS = [t.about.bio].map(p => p.split(' '))
   const sectionRef = useRef(null)
   const labelRef   = useRef(null)
   const textRef    = useRef(null)
@@ -73,7 +72,7 @@ export default function AboutSection() {
           textTransform: 'uppercase',
         }}
       >
-        (About)
+        {t.about.label}
       </span>
 
       {/* Texto — col izquierda */}

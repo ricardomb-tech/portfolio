@@ -1,13 +1,17 @@
 import { useRef, useLayoutEffect, useState, useEffect } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useLanguage } from '../i18n/LanguageContext'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const CATEGORIES = ['BACKEND', 'DISEÑO WEB', 'IA', 'IoT']
+// Claves internas ESTABLES — usadas para buscar en DATA y como estado
+// `active`. NO son el texto mostrado (eso sale de t.skills.categories, que
+// cambia según el idioma); si se tradujeran acá se rompería el lookup.
+const CATEGORY_KEYS = ['BACKEND', 'DISEÑO WEB', 'IA', 'IoT']
 
 // Animated arrow hint component
-function HoverHint({ visible }) {
+function HoverHint({ visible, label }) {
   const arrowRef = useRef(null)
   useEffect(() => {
     if (!arrowRef.current) return
@@ -59,7 +63,7 @@ function HoverHint({ visible }) {
         color: 'rgba(0,0,0,0.3)',
         whiteSpace: 'nowrap',
       }}>
-        hover
+        {label}
       </span>
     </span>
   )
@@ -100,19 +104,15 @@ import { RaspberryPi } from '@/components/ui/svgs/raspberryPi'
 
 const DATA = {
   'BACKEND': {
-    desc: 'APIs escalables, microservicios y arquitecturas que sostienen productos en producción sin fallar.',
     icons: [Nodejs, Python, Java, Postgresql, Docker, Redis, Graphql, Spring, Nginx, MongodbIconLight, Golang],
   },
   'DISEÑO WEB': {
-    desc: 'Interfaces modernas y responsivas que conectan la experiencia del usuario con la lógica del negocio.',
     icons: [ReactDark, Vue, Typescript, Tailwindcss, Figma, Angular, NextjsIconDark, Vite, Sass, Html5, CssOld],
   },
   'IA': {
-    desc: 'Integración de LLMs y pipelines inteligentes para automatizar decisiones en tiempo real.',
     icons: [AnthropicBlack, Openai, OllamaDark, HuggingFace, TensorflowIconDark, Fastapi],
   },
   'IoT': {
-    desc: 'Sensores, dispositivos embebidos y plataformas de telemetría que conectan el mundo físico con la nube.',
     icons: [Grafana, RaspberryPi, Docker, Python, Nodejs, Postgresql, Redis, Nginx],
   },
 }
@@ -176,6 +176,8 @@ function Shape({ x, y, size, type, opacity }) {
 }
 
 export default function CategoriesIntro() {
+  const { t } = useLanguage()
+  const LABELS = Object.fromEntries(CATEGORY_KEYS.map((k, i) => [k, t.skills.categories[i]]))
   const sectionRef  = useRef(null)
   const linesRef    = useRef([])
   const logosRef    = useRef([])
@@ -319,7 +321,7 @@ export default function CategoriesIntro() {
 
       {/* Left: category names — full width so hover works across entire row */}
       <div style={{ flex: '1 1 auto', position: 'relative', zIndex: 2, maxWidth: '70vw' }}>
-        {CATEGORIES.map((cat, i) => (
+        {CATEGORY_KEYS.map((cat, i) => (
           <div
             key={cat}
             ref={el => linesRef.current[i] = el}
@@ -352,12 +354,12 @@ export default function CategoriesIntro() {
               transition: 'color 0.3s ease, -webkit-text-stroke 0.3s ease',
               whiteSpace: 'nowrap',
             }}>
-              {cat}
+              {LABELS[cat]}
             </span>
 
             {/* Gap + hint arrow — visible when not user-hovered */}
             <span style={{ marginLeft: 'clamp(1.2rem, 3vw, 2.5rem)', display: 'flex', alignItems: 'center' }}>
-              <HoverHint visible={!userHovered} />
+              <HoverHint visible={!userHovered} label={t.skills.hover} />
             </span>
           </div>
         ))}
@@ -389,7 +391,7 @@ export default function CategoriesIntro() {
             margin: 0,
             textAlign: 'right',
           }}>
-            {DATA[active].desc}
+            {t.skills.descriptions[active]}
           </p>
         </div>
       )}

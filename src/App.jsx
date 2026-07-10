@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { LanguageProvider } from './i18n/LanguageContext'
 import HeroSection from './components/HeroSection'
 import AboutSection from './components/AboutSection'
 import CategoriesIntro from './components/CategoriesIntro'
 import ProjectsSection from './components/ProjectsSection'
 import OutroSection from './components/OutroSection'
+import ContactSection from './components/ContactSection'
 
 export default function App() {
   // Las secciones usan la fuente "AldoTheApache" en encabezados grandes. Si
@@ -17,12 +19,13 @@ export default function App() {
   }, [])
 
   return (
-    <>
+    <LanguageProvider>
       <HeroSection />
       <AboutSection />
       <CategoriesIntro />
       <ProjectsSection />
       <OutroSection />
-    </>
+      <ContactSection />
+    </LanguageProvider>
   )
 }

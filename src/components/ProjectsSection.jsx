@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGithubRepos } from '../hooks/useGithubRepos'
 import { CactusSVG } from './ui/CactusSVG'
+import { useLanguage } from '../i18n/LanguageContext'
 
 // ── SVGL icon map: language/tech name → component ───────────────────────────
 import { Nodejs           } from '@/components/ui/svgs/nodejs'
@@ -167,8 +168,9 @@ function FeaturedProjectCard({ size = 72, steps }) {
   )
 }
 
-function ProjectRevealCard({ repo, label = 'project' }) {
+function ProjectRevealCard({ repo, label }) {
   if (!repo) return null
+  const { t } = useLanguage()
 
   const logos = (repo.languages || [])
     .map(lang => ({ lang, Logo: getLogo(lang) }))
@@ -187,7 +189,7 @@ function ProjectRevealCard({ repo, label = 'project' }) {
       }}
     >
       <span style={{ display: 'block', fontFamily: '"Inter",sans-serif', fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.45)', marginBottom: '0.55rem' }}>
-        {label}
+        {label || t.projects.label}
       </span>
       <div style={{ fontFamily: '"AldoTheApache","Bebas Neue",Impact,sans-serif', fontSize: 'clamp(2.1rem, 4vw, 4rem)', lineHeight: 0.95, letterSpacing: '-0.03em', color: '#000' }}>
         {repo.name.toUpperCase()}
@@ -222,11 +224,11 @@ function ProjectRevealCard({ repo, label = 'project' }) {
 
       <div style={{ marginTop: '1.1rem', display: 'flex', alignItems: 'center', gap: '1.4rem' }}>
         <a href={repo.html_url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: '"Inter",sans-serif', fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#000', textDecoration: 'none', borderBottom: '1px solid rgba(0,0,0,0.18)', paddingBottom: '2px', whiteSpace: 'nowrap' }}>
-          github →
+          {t.projects.github}
         </a>
         {repo.homepage && (
           <a href={repo.homepage} target="_blank" rel="noopener noreferrer" style={{ fontFamily: '"Inter",sans-serif', fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#000', textDecoration: 'none', borderBottom: '1px solid #000', paddingBottom: '2px', whiteSpace: 'nowrap' }}>
-            live →
+            {t.projects.live}
           </a>
         )}
       </div>
@@ -273,6 +275,7 @@ function obstacleType() {
 }
 
 export default function ProjectsSection() {
+  const { t } = useLanguage()
   const sectionRef    = useRef(null)
   const blackBgRef    = useRef(null)
   const whiteBgRef    = useRef(null)
@@ -381,8 +384,6 @@ export default function ProjectsSection() {
           anticipatePin: 1,
         },
       })
-      window.__debugTl = tl
-      window.__debugGeo = { RUN_START, RUN_DUR, GROW_DUR, END_BUFFER_DUR, introScroll, travel, GROW_SCROLL, END_BUFFER }
 
       // Estado inicial
       gsap.set(dinoRef.current, { scaleY: 0, scaleX: 1, y: 0, transformOrigin: 'bottom center' })
@@ -428,7 +429,15 @@ export default function ProjectsSection() {
           const fadeStart = RUN_START + RUN_DUR
           const fadeDur   = GROW_DUR
           gsap.set(overlayRef.current, { clipPath: 'inset(100% 0% 0% 100%)', opacity: 1 })
-          gsap.set(whiteDinoRef.current, { opacity: 0, scale: 0.85, transformOrigin: 'center center' })
+          // Se asigna .style.transform a mano (no vía gsap.set con `scale`)
+          // en todos los puntos de control de este elemento, para que el
+          // ticker más abajo pueda combinar translate(-50%,-50%) + scale en
+          // un solo string sin que el caché interno de transforms de GSAP
+          // quede desincronizado con el DOM.
+          if (whiteDinoRef.current) {
+            whiteDinoRef.current.style.opacity = 0
+            whiteDinoRef.current.style.transform = 'translate(-50%, -50%) scale(0.85)'
+          }
 
           // Crear un objeto de progreso que el timeline scrub controla
           const state = { progress: 0 }
@@ -458,7 +467,10 @@ export default function ProjectsSection() {
             if (state.progress <= 0) {
               if (anchorRect) overlayRef.current.style.clipPath = 'inset(100% 0% 0% 100%)'
               anchorRect = null
-              if (whiteDinoRef.current) gsap.set(whiteDinoRef.current, { opacity: 0, scale: 0.85 })
+              if (whiteDinoRef.current) {
+                whiteDinoRef.current.style.opacity = 0
+                whiteDinoRef.current.style.transform = 'translate(-50%, -50%) scale(0.85)'
+              }
               return
             }
             const p = state.progress
@@ -469,7 +481,10 @@ export default function ProjectsSection() {
             if (whiteDinoRef.current) {
               const dinoP = gsap.utils.clamp(0, 1, (p - 0.85) / 0.15)
               whiteDinoRef.current.style.opacity = dinoP
-              whiteDinoRef.current.style.transform = `scale(${0.85 + dinoP * 0.15})`
+              // translate(-50%,-50%) centra el bloque; iría perdido si el
+              // scale se asignara solo, ya que .transform reemplaza el
+              // valor completo en vez de combinarse con el existente.
+              whiteDinoRef.current.style.transform = `translate(-50%, -50%) scale(${0.85 + dinoP * 0.15})`
             }
             if (!anchorRect) {
               const r0 = bottomCellEl.getBoundingClientRect()
@@ -563,10 +578,10 @@ export default function ProjectsSection() {
 
       {/* ── Texto (encima de fondos) ── */}
       <div ref={titleWhiteRef} style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none', background: '#000', clipPath: 'polygon(0 0, 100% 0, 0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ ...H2, color: '#fff' }}>PROJECTS</h2>
+        <h2 style={{ ...H2, color: '#fff' }}>{t.projects.title}</h2>
       </div>
       <div ref={titleBlackRef} style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none', background: '#fff', clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%, 100% 0%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ ...H2, color: '#000' }}>PROJECTS</h2>
+        <h2 style={{ ...H2, color: '#000' }}>{t.projects.title}</h2>
       </div>
 
       {/* ── Línea del suelo ── */}
@@ -597,12 +612,12 @@ export default function ProjectsSection() {
                 el segundo un poco más arriba para que no queden alineados */}
             {i === 1 && project1 && (
               <div style={{ flex: '0 0 auto', marginRight: GAP_CARD, marginBottom: SPACE_LOW, pointerEvents: 'auto' }}>
-                <ProjectRevealCard repo={project1} label="project" />
+                <ProjectRevealCard repo={project1} />
               </div>
             )}
             {i === 1 && project2 && (
               <div style={{ flex: '0 0 auto', marginRight: GAP_CARD, marginBottom: SPACE_HIGH, pointerEvents: 'auto' }}>
-                <ProjectRevealCard repo={project2} label="project" />
+                <ProjectRevealCard repo={project2} />
               </div>
             )}
             {/* Escalera de cuadros — decoración visible junto al segundo cactus */}
@@ -614,12 +629,12 @@ export default function ProjectsSection() {
             {/* Entre el segundo y el tercer cactus: otros dos proyectos */}
             {i === 2 && project3 && (
               <div style={{ flex: '0 0 auto', marginRight: GAP_CARD, marginBottom: SPACE_LOW, pointerEvents: 'auto' }}>
-                <ProjectRevealCard repo={project3} label="project" />
+                <ProjectRevealCard repo={project3} />
               </div>
             )}
             {i === 2 && project4 && (
               <div style={{ flex: '0 0 auto', marginRight: GAP_CARD, marginBottom: SPACE_HIGH, pointerEvents: 'auto' }}>
-                <ProjectRevealCard repo={project4} label="project" />
+                <ProjectRevealCard repo={project4} />
               </div>
             )}
             {/* Segunda escalera de cuadros, antes del cuarto cactus — patrón
@@ -632,7 +647,7 @@ export default function ProjectsSection() {
             {/* Último proyecto, junto a la segunda escalera */}
             {i === 3 && project5 && (
               <div style={{ flex: '0 0 auto', marginRight: GAP_CARD * 1.6, marginBottom: SPACE_LOW, pointerEvents: 'auto' }}>
-                <ProjectRevealCard repo={project5} label="project" />
+                <ProjectRevealCard repo={project5} />
               </div>
             )}
             {/* Obstáculo */}
@@ -661,7 +676,7 @@ export default function ProjectsSection() {
 
         {/* Bloque final */}
         <div style={{ flex: '0 0 auto', width: '40vw', display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '3rem', paddingLeft: '1rem', pointerEvents: 'auto' }}>
-          <span style={{ fontFamily: '"AldoTheApache","Bebas Neue",Impact,sans-serif', fontSize: 'clamp(2rem,4vw,4rem)', color: 'rgba(0,0,0,0.12)', whiteSpace: 'nowrap' }}>& more</span>
+          <span style={{ fontFamily: '"AldoTheApache","Bebas Neue",Impact,sans-serif', fontSize: 'clamp(2rem,4vw,4rem)', color: 'rgba(0,0,0,0.12)', whiteSpace: 'nowrap' }}>{t.projects.more}</span>
           <a href="https://github.com/ricardomb-tech" target="_blank" rel="noopener noreferrer" style={{ fontFamily: '"Inter",sans-serif', fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.3)', textDecoration: 'none', borderBottom: '1px solid rgba(0,0,0,0.15)', paddingBottom: '1px', width: 'fit-content' }}>github.com/ricardomb-tech →</a>
         </div>
       </div>
@@ -686,27 +701,41 @@ export default function ProjectsSection() {
         }}
       />
 
-      {/* Dino blanco — aparece recién cuando el overlay ya está prácticamente
-          a pantalla completa, encima de él (z-index mayor). Mismo trazado
-          que el dino negro, con los colores invertidos. */}
+      {/* Dino blanco + frase terminal — aparecen recién cuando el overlay ya
+          está prácticamente a pantalla completa, encima de él (z-index
+          mayor). El dino usa el mismo trazado que el negro, con los colores
+          invertidos. Ambos comparten el mismo ref/opacity (un solo punto de
+          control en el ticker más arriba). */}
       <div
         ref={whiteDinoRef}
         style={{
           position: 'fixed',
           top: '50%',
           left: '50%',
-          marginLeft: -DINO_W * 1.3 / 2,
-          marginTop: -DINO_H * 1.3 / 2,
-          width: DINO_W * 1.3,
-          height: DINO_H * 1.3,
+          transform: 'translate(-50%, -50%)',
           zIndex: 10000,
           pointerEvents: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1.4rem',
         }}
       >
-        <svg viewBox="13.848 0 283.645 305.4" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-          <path d="M269.352 91.664h-42.436V80.04h70.577v-65.73h-14.294V0H168.4v14.309h-13.848v91.664H140.26v13.861h-20.994v14.309H98.271v14.308H83.977v13.862H58.069v-14.309H44.222v-13.861H29.928v-28.17h-16.08v86.746h13.847v14.308h14.293v13.862h13.848v14.308H70.13v13.862h13.847v56.34h30.375V289.3h-13.848V277.23h13.848v-13.862h14.294V249.06h11.613v14.308h14.294V305.4h30.375V289.3h-14.294v-54.104h14.294V220.89h13.847v-21.016h14.294v-49.186h11.614v13.862h16.527v-30.406h-28.14v-25.934h56.282z" fill="#fff"/>
-          <path d="M182.248 20.569h16.974V37.56h-16.974z" fill="#000"/>
-        </svg>
+        <div style={{ width: DINO_W * 1.3, height: DINO_H * 1.3 }}>
+          <svg viewBox="13.848 0 283.645 305.4" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <path d="M269.352 91.664h-42.436V80.04h70.577v-65.73h-14.294V0H168.4v14.309h-13.848v91.664H140.26v13.861h-20.994v14.309H98.271v14.308H83.977v13.862H58.069v-14.309H44.222v-13.861H29.928v-28.17h-16.08v86.746h13.847v14.308h14.293v13.862h13.848v14.308H70.13v13.862h13.847v56.34h30.375V289.3h-13.848V277.23h13.848v-13.862h14.294V249.06h11.613v14.308h14.294V305.4h30.375V289.3h-14.294v-54.104h14.294V220.89h13.847v-21.016h14.294v-49.186h11.614v13.862h16.527v-30.406h-28.14v-25.934h56.282z" fill="#fff"/>
+            <path d="M182.248 20.569h16.974V37.56h-16.974z" fill="#000"/>
+          </svg>
+        </div>
+        <div style={{
+          fontFamily: '"Courier New", Courier, monospace',
+          fontSize: 'clamp(0.85rem, 1.6vw, 1.15rem)',
+          letterSpacing: '0.02em',
+          color: 'rgba(255,255,255,0.75)',
+          whiteSpace: 'nowrap',
+        }}>
+          {'> ' + t.projects.terminalPhrase}
+        </div>
       </div>
 
       {/* ── Dino — fijo, corre en su sitio; el mundo pasa por debajo/detrás ── */}

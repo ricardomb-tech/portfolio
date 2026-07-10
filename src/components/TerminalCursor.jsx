@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-
-const TEXT = '> SOFTWARE DEVELOPER_'
+import { useLanguage } from '../i18n/LanguageContext'
 
 export default function TerminalCursor() {
+  const { t } = useLanguage()
+  const TEXT = `> ${t.hero.terminal}_`
   const [charCount, setCharCount] = useState(0)
   const [blink, setBlink] = useState(true)
 
@@ -15,7 +16,7 @@ export default function TerminalCursor() {
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [TEXT])
 
   // cursor blink (only when no text yet)
   useEffect(() => {

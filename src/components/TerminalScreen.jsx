@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useLanguage } from '../i18n/LanguageContext'
 
-const FULL_TEXT = 'I build backends that think and systems that last.'
-const HIGHLIGHT = ['think', 'last']
-
-function buildSpans(visible) {
+function buildSpans(visible, highlightWords) {
   const spans = []
   let i = 0
   while (i < visible.length) {
     let matched = false
-    for (const word of HIGHLIGHT) {
+    for (const word of highlightWords) {
       if (visible.slice(i, i + word.length) === word) {
         spans.push(<em key={i} style={{ color: '#000000', fontStyle: 'italic', background: '#ffffff', padding: '0 8px', borderRadius: '4px' }}>{word}</em>)
         i += word.length
@@ -25,6 +23,8 @@ function buildSpans(visible) {
 }
 
 export default function TerminalScreen() {
+  const { t } = useLanguage()
+  const FULL_TEXT = t.hero.screenText
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export default function TerminalScreen() {
           letterSpacing: '-0.02em',
           minHeight:  '1em',
         }}>
-          {buildSpans(visible)}
+          {buildSpans(visible, t.hero.screenHighlight)}
         </p>
       </div>
     </div>
