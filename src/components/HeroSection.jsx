@@ -7,8 +7,9 @@ import TerminalCursor from './TerminalCursor'
 import TerminalScreen from './TerminalScreen'
 
 const FONT = '"AldoTheApache", "Bebas Neue", Impact, sans-serif'
-const EDGE_PAD = 32 // px de margen de seguridad respecto a los bordes del viewport
-const MARTINEZ_LEFT = 0.24 // fracción del viewport que se desplaza MARTINEZ hacia la derecha
+const RICARDO_EDGE_PAD = 4 // RICARDO va pegado al borde izquierdo, con un margen mínimo
+const MARTINEZ_EDGE_PAD = 4 // MARTINEZ va pegado al borde derecho, con un margen mínimo
+const FONT_SCALE = 0.85 // factor para reducir el tamaño de letra respecto al ancho máximo disponible
 
 function SplitWord({ word, color, wrapperRef, style = {} }) {
   return (
@@ -48,11 +49,10 @@ export default function HeroSection() {
 
   // Un único tamaño de letra para ambas palabras (antes se calculaba por
   // separado para cada una, y al tener distinto número de letras terminaban
-  // con tamaños distintos). Respeta EDGE_PAD en ambos bordes del viewport
-  // para que ninguna letra quede cortada. Usa solo scrollWidth (intrínseco)
-  // y los offsets fijos que definimos en el layout (MARTINEZ_LEFT) — nunca
-  // getBoundingClientRect, que puede leer una posición transitoria durante
-  // un resize/transform y producir un tamaño degenerado.
+  // con tamaños distintos). Respeta los márgenes mínimos en ambos bordes del
+  // viewport para que ninguna letra quede cortada. Usa solo scrollWidth
+  // (intrínseco) — nunca getBoundingClientRect, que puede leer una posición
+  // transitoria durante un resize/transform y producir un tamaño degenerado.
   const fitText = useCallback(() => {
     const vw = window.innerWidth
     const ricardoEl  = ricardoRef.current
@@ -66,13 +66,13 @@ export default function HeroSection() {
     const martinezW = martinezEl.scrollWidth
     if (!ricardoW || !martinezW) return
 
-    const ricardoAvailable  = vw - EDGE_PAD * 2
-    const martinezAvailable = vw - EDGE_PAD - vw * MARTINEZ_LEFT
+    const ricardoAvailable  = vw - RICARDO_EDGE_PAD * 2
+    const martinezAvailable = vw - MARTINEZ_EDGE_PAD * 2
 
     const maxByRicardo  = 10 * (ricardoAvailable  / ricardoW)
     const maxByMartinez = 10 * (martinezAvailable / martinezW)
 
-    const fontSize = `${Math.max(24, Math.min(maxByRicardo, maxByMartinez))}px`
+    const fontSize = `${Math.max(24, Math.min(maxByRicardo, maxByMartinez) * FONT_SCALE)}px`
     ricardoEl.style.fontSize  = fontSize
     martinezEl.style.fontSize = fontSize
   }, [])
@@ -146,6 +146,7 @@ export default function HeroSection() {
 
   return (
     <section
+      id="home"
       ref={heroRef}
       style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}
     >
@@ -161,7 +162,7 @@ export default function HeroSection() {
           willChange: 'transform',
           display: 'flex',
           alignItems: 'flex-end',
-          paddingLeft: EDGE_PAD,
+          paddingLeft: RICARDO_EDGE_PAD,
         }}
       >
         <SplitWord
@@ -184,13 +185,15 @@ export default function HeroSection() {
           willChange: 'transform',
           display: 'flex',
           alignItems: 'flex-start',
+          justifyContent: 'flex-end',
+          paddingRight: MARTINEZ_EDGE_PAD,
         }}
       >
         <SplitWord
           word="MARTINEZ"
           color="#fff"
           wrapperRef={martinezRef}
-          style={{ marginLeft: `${MARTINEZ_LEFT * 100}%`, marginTop: '0.1em' }}
+          style={{ marginTop: '-0.04em' }}
         />
       </div>
 

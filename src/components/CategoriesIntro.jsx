@@ -264,6 +264,7 @@ export default function CategoriesIntro() {
 
   return (
     <section
+      id="skills"
       ref={sectionRef}
       style={{
         minHeight: '100vh',

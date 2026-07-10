@@ -109,176 +109,163 @@ function BirdSVG({ width = 64, height = 44, style = {}, className = '' }) {
   )
 }
 
-// Silueta real de la nube (del SVG proporcionado) — solo el contorno, sin las
-// gotas de lluvia del trazado original. Blanco sólido, estirada con
-// preserveAspectRatio="none" para cubrir siempre el panel de contenido
-// aunque el texto cambie de alto.
-function CloudBg() {
+// Escalera diagonal — patrón por defecto (primer grupo de cuadros).
+const STAIRCASE_STEPS = [
+  { x: 0, y: 3 },
+  { x: 1, y: 2 },
+  { x: 2, y: 1 },
+  { x: 3, y: 0 },
+  { x: 4, y: 1 },  // pegado al último de la diagonal
+]
+
+// Cruz compacta — patrón del segundo grupo, para que no se vea como una
+// versión chica de la misma escalera.
+const CROSS_STEPS = [
+  { x: 1, y: 0 },
+  { x: 0, y: 1 },
+  { x: 1, y: 1 },
+  { x: 2, y: 1 },
+  { x: 1, y: 2 },
+]
+
+// Decoración geométrica de cuadros. Se arma con cuadrados sueltos para
+// controlar con precisión la disposición.
+function Checkerboard({ size = 100, gap = 0, steps = STAIRCASE_STEPS }) {
+  const minX = Math.min(...steps.map(step => step.x))
+  const minY = Math.min(...steps.map(step => step.y))
+  const maxX = Math.max(...steps.map(step => step.x))
+  const maxY = Math.max(...steps.map(step => step.y))
+  const width = (maxX - minX + 1) * size + (maxX - minX) * gap
+  const height = (maxY - minY + 1) * size + (maxY - minY) * gap
+
   return (
-    <svg
-      viewBox="0 0 1234 1280"
-      preserveAspectRatio="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 0 }}
-    >
-      <g transform="translate(0,1280) scale(0.1,-0.1)" fill="#fff" stroke="none">
-        <path d="M7925 12794 c-646 -42 -1207 -288 -1727 -757 -249 -225 -511 -570
--659 -869 l-42 -85 -186 63 c-267 91 -373 108 -621 101 -387 -11 -708 -93
--1060 -272 -539 -275 -954 -733 -1135 -1255 -19 -57 -37 -106 -39 -107 -2 -2
--59 6 -127 17 -357 58 -797 -14 -1144 -187 -261 -131 -465 -306 -616 -531
--117 -174 -181 -328 -226 -540 -24 -112 -27 -149 -27 -317 0 -168 3 -205 27
--319 151 -713 743 -1248 1532 -1383 155 -26 446 -24 600 4 163 30 352 83 491
-138 l116 45 87 -69 c397 -315 863 -512 1376 -581 151 -20 487 -24 645 -7 374
-40 702 138 1047 310 71 36 152 79 181 96 l51 30 58 -48 c203 -169 491 -310
-787 -386 219 -55 342 -70 596 -70 239 1 321 10 519 61 439 114 896 417 1184
-787 38 48 72 87 77 87 4 0 60 -22 123 -49 298 -128 445 -170 627 -178 369 -17
-785 107 1090 324 197 141 398 362 525 578 276 469 357 1089 214 1642 -192 748
--747 1292 -1463 1436 l-119 24 -22 111 c-209 1032 -1029 1869 -2055 2096 -221
-48 -493 72 -685 60z"/>
-      </g>
-    </svg>
+    <div style={{ position: 'relative', width, height }}>
+      {steps.map((step) => (
+        <div
+          key={`${step.x}-${step.y}`}
+          style={{
+            position: 'absolute',
+            left: (step.x - minX) * (size + gap),
+            top: (step.y - minY) * (size + gap),
+            width: size,
+            height: size,
+            background: '#000',
+          }}
+        />
+      ))}
+    </div>
   )
 }
 
-// Tarjeta de proyecto con forma de nube — nombre, descripción, tecnología y links.
-// Sin captura de GitHub: contenido propio, curado.
-function CloudCard({ repo }) {
+// Decoración del proyecto destacado — por ahora solo los cuadros, sin nombre
+// ni descripción. Fijo en la esquina de la sección (no viaja con el mundo).
+function FeaturedProjectCard({ size = 72, steps }) {
+  return (
+    <div data-card style={{ position: 'relative' }}>
+      <Checkerboard size={size} steps={steps} />
+    </div>
+  )
+}
+
+function ProjectRevealCard({ repo, label = 'project' }) {
+  if (!repo) return null
+
   const logos = (repo.languages || [])
     .map(lang => ({ lang, Logo: getLogo(lang) }))
     .filter(x => x.Logo)
-    .slice(0, 4)
+    .slice(0, 5)
 
   return (
-    <div data-card style={{
-      position: 'relative',
-      width: 440,
-      filter: 'drop-shadow(0 26px 36px rgba(0,0,0,0.18)) drop-shadow(0 8px 14px rgba(0,0,0,0.10))',
-    }}>
-      {/* Silueta real de la nube (sin gotas), estirada para cubrir el panel */}
-      <CloudBg />
+    <div
+      style={{
+        width: 'min(30vw, 440px)',
+        padding: 0,
+        border: 'none',
+        background: 'transparent',
+        boxShadow: 'none',
+        backdropFilter: 'none',
+      }}
+    >
+      <span style={{ display: 'block', fontFamily: '"Inter",sans-serif', fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.45)', marginBottom: '0.55rem' }}>
+        {label}
+      </span>
+      <div style={{ fontFamily: '"AldoTheApache","Bebas Neue",Impact,sans-serif', fontSize: 'clamp(2.1rem, 4vw, 4rem)', lineHeight: 0.95, letterSpacing: '-0.03em', color: '#000' }}>
+        {repo.name.toUpperCase()}
+      </div>
+      <div style={{ marginTop: '0.8rem', fontFamily: '"Inter",sans-serif', fontSize: '0.95rem', lineHeight: 1.45, color: 'rgba(0,0,0,0.72)' }}>
+        {repo.description}
+      </div>
 
-      {/* Contenido — centrado y con padding generoso para quedar dentro del
-          cuerpo ancho de la nube, lejos de los bultos finos de los bordes */}
-      <div style={{
-        position: 'relative', zIndex: 1,
-        padding: '44px 60px 80px 85px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        textAlign: 'center',
-      }}>
-        <h3 style={{
-          fontFamily: '"AldoTheApache", "Bebas Neue", Impact, sans-serif',
-          fontWeight: 400,
-          fontSize: '1.9rem',
-          color: '#000',
-          margin: '0 0 10px',
-          letterSpacing: '0.01em',
-          textTransform: 'uppercase',
-          lineHeight: 1,
-        }}>
-          {repo.name.replace(/-/g, ' ')}
-        </h3>
-
-        <div style={{ display: 'flex', width: '100%', alignItems: 'flex-start', justifyContent: 'flex-start', gap: '14px', marginBottom: '18px' }}>
-          {/* Logos de tecnología */}
-          {logos.length > 0 && (
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'flex-start', flexWrap: 'wrap', paddingTop: '2px', order: 0, flexShrink: 0 }}>
-              {logos.map(({ lang, Logo }) => (
-                <span
-                  key={lang}
-                  title={lang}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 30,
-                    height: 30,
-                    background: '#f4f4f4',
-                    borderRadius: '8px',
-                    border: '1px solid #ebebeb',
-                    flexShrink: 0,
-                  }}
-                >
-                  <Logo width={17} height={17} style={{ filter: 'grayscale(1) brightness(0) contrast(1)' }} />
-                </span>
-              ))}
-            </div>
-          )}
-
-          <p style={{
-            fontFamily: '"Inter", sans-serif',
-            fontSize: '0.74rem',
-            lineHeight: 1.45,
-            color: 'rgba(0,0,0,0.55)',
-            margin: 0,
-            flex: 1,
-            minWidth: 0,
-            textAlign: 'left',
-            whiteSpace: 'normal',
-            wordBreak: 'break-word',
-            overflow: 'hidden',
-            order: 1,
-          }}>
-            {repo.description || '—'}
-          </p>
-        </div>
-
-        {/* Links */}
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'center' }}>
-          <a
-            href={repo.html_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontFamily: '"Inter", sans-serif',
-              fontSize: '0.68rem',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: 'rgba(0,0,0,0.4)',
-              textDecoration: 'none',
-              borderBottom: '1px solid rgba(0,0,0,0.15)',
-              paddingBottom: '1px',
-            }}
-          >
-            GitHub →
-          </a>
-          {repo.homepage && (
-            <a
-              href={repo.homepage}
-              target="_blank"
-              rel="noopener noreferrer"
+      {logos.length > 0 && (
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {logos.map(({ lang, Logo }) => (
+            <span
+              key={lang}
+              title={lang}
               style={{
-                fontFamily: '"Inter", sans-serif',
-                fontSize: '0.68rem',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: '#000',
-                textDecoration: 'none',
-                borderBottom: '1px solid #000',
-                paddingBottom: '1px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 34,
+                height: 34,
+                background: '#f4f4f4',
+                borderRadius: '9px',
+                border: '1px solid #ebebeb',
+                flexShrink: 0,
               }}
             >
-              Live →
-            </a>
-          )}
+              <Logo width={19} height={19} style={{ filter: 'grayscale(1)' }} />
+            </span>
+          ))}
         </div>
+      )}
+
+      <div style={{ marginTop: '1.1rem', display: 'flex', alignItems: 'center', gap: '1.4rem' }}>
+        <a href={repo.html_url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: '"Inter",sans-serif', fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#000', textDecoration: 'none', borderBottom: '1px solid rgba(0,0,0,0.18)', paddingBottom: '2px', whiteSpace: 'nowrap' }}>
+          github →
+        </a>
+        {repo.homepage && (
+          <a href={repo.homepage} target="_blank" rel="noopener noreferrer" style={{ fontFamily: '"Inter",sans-serif', fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#000', textDecoration: 'none', borderBottom: '1px solid #000', paddingBottom: '2px', whiteSpace: 'nowrap' }}>
+            live →
+          </a>
+        )}
       </div>
     </div>
   )
 }
 
-const GROUND_BOTTOM = 90 // px desde el borde inferior de la sección
-const DINO_W    = 150
-const DINO_H    = 162
-const CACTUS_H  = 170    // alto del cactus (obstáculo de suelo)
-const CACTUS_W  = 104    // ancho del cactus
-const CACTUS_DROP = 35   // px que el cactus baja por debajo de la línea del suelo
-const BIRD_W    = 66
-const BIRD_H    = 46
-const BIRD_FLY  = 78     // cuánto vuela el pájaro por encima del suelo (px)
-const CJUMP     = 250    // altura del salto sobre un cactus
-const BIRD_LIFT = 210    // altura a la que el dino se eleva para superar un pájaro
-const CLOUD_BOTTOM = 270 // altura de la nube-proyecto sobre la línea del suelo (por encima del salto del dino)
-const OBSTACLE_GAP = 460 // separación (px) entre un obstáculo y el siguiente
+// Todas las medidas en px de esta sección están ajustadas para un viewport
+// de referencia de 762px de ancho (el tamaño en el que se diseñó la escena).
+// REF_VW + getSceneScale() escalan todo (dino, cactus, cuadros, separaciones)
+// según el ancho real de pantalla — pero AMORTIGUADO: escalar 1:1 con el
+// viewport (una pantalla de 1440px es ~1.9x el de referencia) se veía
+// gigante en un monitor normal. DAMPING reduce ese crecimiento a una
+// fracción, así se nota más grande que en el preview angosto sin llegar a
+// verse desproporcionado.
+const REF_VW = 762
+const SCALE_DAMPING = 0.2
+function getSceneScale(vw) {
+  const raw = vw / REF_VW
+  const damped = 1 + (raw - 1) * SCALE_DAMPING
+  return gsap.utils.clamp(0.8, 1.3, damped)
+}
+
+const GROUND_BOTTOM_BASE = 65 // px desde el borde inferior de la sección
+const DINO_W_BASE    = 150
+const DINO_H_BASE    = 162
+const CACTUS_H_BASE  = 170    // alto del cactus (obstáculo de suelo)
+const CACTUS_W_BASE  = 104    // ancho del cactus
+const CACTUS_DROP_BASE = 35   // px que el cactus baja por debajo de la línea del suelo
+const BIRD_W_BASE    = 66
+const BIRD_H_BASE    = 46
+const BIRD_FLY_BASE  = 78     // cuánto vuela el pájaro por encima del suelo (px)
+const CJUMP_BASE     = 250    // altura del salto sobre un cactus
+const BIRD_LIFT_BASE = 210    // altura a la que el dino se eleva para superar un pájaro
+const OBSTACLE_GAP_BASE = 320 // separación (px) entre un obstáculo y el siguiente
+const JUMP_SCALE = 1.22  // cuánto crece el dino en el aire al saltar (no es px, no escala)
+const CUBE_SIZE_1_BASE = 110  // tamaño de cuadro de la primera escalera / ancla del efecto
+const CUBE_SIZE_2_BASE = 90   // tamaño de cuadro de la segunda escalera (cruz)
+const BOARD_GAP_BASE = 80     // separación antes de la primera escalera
 
 // Patrón de obstáculos: solo cactus
 function obstacleType() {
@@ -295,6 +282,8 @@ export default function ProjectsSection() {
   const dinoInnerRef  = useRef(null)
   const worldRef      = useRef(null)
   const groundRef     = useRef(null)
+  const cardRef       = useRef(null)
+  const overlayRef    = useRef(null)
   const { repos, loading } = useGithubRepos()
   const [vpKey, setVpKey] = useState(0)
 
@@ -306,12 +295,43 @@ export default function ProjectsSection() {
     return () => { clearTimeout(t); window.removeEventListener('resize', onResize) }
   }, [])
 
+  // Escala de la escena según el ancho real de pantalla (ver getSceneScale).
+  // vpKey cambia al redimensionar y fuerza este re-render, así se recalcula.
+  const scale = getSceneScale(typeof window !== 'undefined' ? window.innerWidth : REF_VW)
+  const GROUND_BOTTOM = GROUND_BOTTOM_BASE * scale
+  const DINO_W    = DINO_W_BASE * scale
+  const DINO_H    = DINO_H_BASE * scale
+  const CACTUS_H  = CACTUS_H_BASE * scale
+  const CACTUS_W  = CACTUS_W_BASE * scale
+  const CACTUS_DROP = CACTUS_DROP_BASE * scale
+  const BIRD_W    = BIRD_W_BASE * scale
+  const BIRD_H    = BIRD_H_BASE * scale
+  const BIRD_FLY  = BIRD_FLY_BASE * scale
+  const OBSTACLE_GAP = OBSTACLE_GAP_BASE * scale
+  const CUBE_SIZE_1 = CUBE_SIZE_1_BASE * scale
+  const CUBE_SIZE_2 = CUBE_SIZE_2_BASE * scale
+  const BOARD_GAP = BOARD_GAP_BASE * scale
+  // Separaciones verticales/horizontales de tarjetas y cuadros (antes en
+  // rem fijo, que no crecía con el resto de la escena en pantallas grandes).
+  const SPACE_LOW   = 176 * scale // proyecto "bajo"
+  const SPACE_HIGH  = 232 * scale // proyecto "alto" (desalineado)
+  const SPACE_BOARD = 96  * scale // debajo de las escaleras de cuadros
+  const GAP_CARD    = 48  * scale // ~3rem: entre tarjetas de proyecto
+  const GAP_SMALL   = 32  * scale // ~2rem
+
   useLayoutEffect(() => {
     if (loading || !repos.length || !worldRef.current) return
+
+    // El overlay se anima con un gsap.ticker (no lo gestiona gsap.context),
+    // así que hay que quitarlo a mano en el cleanup para no acumular tickers
+    // huérfanos en cada resize/remonte que sigan leyendo un cubo desmontado.
+    let overlayTicker = null
 
     const ctx = gsap.context(() => {
       const vw = window.innerWidth
       const vh = window.innerHeight
+      const CJUMP     = CJUMP_BASE * scale
+      const BIRD_LIFT = BIRD_LIFT_BASE * scale
 
       // ── Geometría del mundo: medir la posición real de cada obstáculo ──
       const dinoCenterX = vw * 0.10 + DINO_W / 2
@@ -329,17 +349,19 @@ export default function ProjectsSection() {
       const travel  = Math.max(worldW - vw * 0.98, lastCx - dinoCenterX + vw * 0.6)
       const endX    = -travel
 
-      // Reparto del scroll entre intro (transición) y carrera
+      // Reparto del scroll entre intro (transición), carrera y crecimiento final
       const introScroll = vh * 0.9
+      const GROW_SCROLL = vh * 0.7   // scroll dedicado al cuadro creciendo a pantalla completa
       const INTRO_DUR   = 0.55
       const RUN_START   = 0.55
       const RUN_DUR     = INTRO_DUR * (travel / introScroll)
+      const GROW_DUR    = INTRO_DUR * (GROW_SCROLL / introScroll)
 
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: `+=${introScroll + travel}`,
+          end: `+=${introScroll + travel + GROW_SCROLL}`,
           scrub: 1,
           pin: true,
           anticipatePin: 1,
@@ -347,9 +369,10 @@ export default function ProjectsSection() {
       })
 
       // Estado inicial
-      gsap.set(dinoRef.current, { scaleY: 0, y: 0, transformOrigin: 'bottom center' })
+      gsap.set(dinoRef.current, { scaleY: 0, scaleX: 1, y: 0, transformOrigin: 'bottom center' })
       gsap.set(groundRef.current, { opacity: 0 })
       gsap.set(worldRef.current, { x: 0, opacity: 0 })
+      if (cardRef.current) gsap.set(cardRef.current, { opacity: 1, scale: 1 })
 
       // Bob de las patas (independiente del scroll) para que el dino "corra"
       gsap.to(dinoInnerRef.current, { y: -5, repeat: -1, yoyo: true, duration: 0.16, ease: 'power1.inOut' })
@@ -374,6 +397,79 @@ export default function ProjectsSection() {
       // ── Carrera: el mundo se desplaza a la izquierda a velocidad constante ──
       tl.fromTo(worldRef.current, { x: 0 }, { x: endX, ease: 'none', duration: RUN_DUR }, RUN_START)
 
+      // ── Efecto final: overlay negro crece desde el cuadro data-bottom-cell ──
+      // Usa gsap.ticker para leer la posición REAL del cuadro en cada frame.
+      {
+        const bottomCellEl = cardRef.current?.querySelector('[data-bottom-cell="true"]')
+        if (bottomCellEl && overlayRef.current) {
+          // El crecimiento tiene su PROPIO tramo de scroll (GROW_DUR), después
+          // de que la carrera termina (RUN_START+RUN_DUR): el mundo ya dejó de
+          // moverse y la escalera de cuadros está asentada en su posición
+          // final antes de que el negro empiece a crecer. Antes, el negro
+          // arrancaba a una fracción fija de la carrera, sin relación con si
+          // la escalera ya había entrado en pantalla o si el dino ya había
+          // saltado el último obstáculo.
+          const fadeStart = RUN_START + RUN_DUR
+          const fadeDur   = GROW_DUR
+          gsap.set(overlayRef.current, { clipPath: 'inset(100% 0% 0% 100%)', opacity: 1 })
+
+          // Crear un objeto de progreso que el timeline scrub controla
+          const state = { progress: 0 }
+
+          tl.to(state, {
+            progress: 1,
+            ease: 'power2.in',
+            duration: fadeDur,
+          }, fadeStart)
+
+          // El mundo ya está detenido cuando arranca el fundido (termina en
+          // fadeStart), así que la posición del cuadro es estable. Aun así se
+          // captura una única vez al arrancar, por si el scrub deja el mundo
+          // a mitad de camino en algún frame intermedio.
+          let anchorRect = null
+
+          // El ticker lee la posición real del cuadro en cada frame
+          const ticker = gsap.ticker.add(() => {
+            if (!overlayRef.current) return
+            if (state.progress <= 0) {
+              if (anchorRect) overlayRef.current.style.clipPath = 'inset(100% 0% 0% 100%)'
+              anchorRect = null
+              return
+            }
+            const p = state.progress
+            if (!anchorRect) {
+              const r0 = bottomCellEl.getBoundingClientRect()
+              anchorRect = { top: r0.top, left: r0.left, right: r0.right, bottom: r0.bottom }
+            }
+            const r = anchorRect
+
+            // El cubo se engrandece HACIA LA DERECHA: el borde izquierdo queda
+            // anclado al cuadro mientras el resto (derecha, arriba, abajo) se
+            // expande. Solo en el tramo final (p > 0.7) el borde izquierdo se
+            // suelta para completar el fundido a pantalla completa.
+            const pGrow = gsap.utils.clamp(0, 1, p / 0.7)          // crece a la derecha
+            const pLeft = gsap.utils.clamp(0, 1, (p - 0.7) / 0.3)  // rellena a la izquierda al final
+
+            const iTop    = r.top                      * (1 - pGrow)
+            const iRight  = Math.max(vw - r.right, 0)  * (1 - pGrow)
+            const iBottom = Math.max(vh - r.bottom, 0) * (1 - pGrow)
+            const iLeft   = r.left                     * (1 - pLeft)
+
+            overlayRef.current.style.clipPath =
+              `inset(${iTop}px ${iRight}px ${iBottom}px ${iLeft}px)`
+
+            // Cuando termina, limpiamos el ticker
+            if (p >= 1) gsap.ticker.remove(ticker)
+          })
+          overlayTicker = ticker
+
+          // Mundo y dino desaparecen a mitad del efecto
+          tl.to([dinoRef.current, groundRef.current, worldRef.current], {
+            opacity: 0, ease: 'none', duration: fadeDur * 0.3,
+          }, fadeStart + fadeDur * 0.5)
+        }
+      }
+
       // ── Saltos sincronizados: cada obstáculo cruza al dino en un momento exacto ──
       obstacles.forEach(o => {
         // Fracción de la carrera en la que este obstáculo coincide con el dino
@@ -381,23 +477,27 @@ export default function ProjectsSection() {
         const T = RUN_START + f * RUN_DUR
 
         if (o.type === 'cactus') {
-          // Salto rápido: cima justo cuando el cactus está debajo del dino
+          // Salto rápido: cima justo cuando el cactus está debajo del dino.
+          // Además crece un poco en el aire, para dar sensación de impulso.
           const JW = gsap.utils.clamp(0.05, 0.5, (300 / travel) * RUN_DUR)
-          tl.to(dinoRef.current, { y: -CJUMP, ease: 'power2.out', duration: JW / 2 }, T - JW / 2)
-          tl.to(dinoRef.current, { y: 0,      ease: 'power2.in',  duration: JW / 2 }, T)
+          tl.to(dinoRef.current, { y: -CJUMP, scale: JUMP_SCALE, ease: 'power2.out', duration: JW / 2 }, T - JW / 2)
+          tl.to(dinoRef.current, { y: 0,      scale: 1,          ease: 'power2.in',  duration: JW / 2 }, T)
           tl.to(dinoInnerRef.current, { rotation: -8, duration: JW / 2 }, T - JW / 2)
           tl.to(dinoInnerRef.current, { rotation: 0,  duration: JW / 2 }, T)
         } else {
-          // Pájaro: el dino se eleva, se mantiene arriba mientras pasa, y baja
+          // Pájaro: el dino se eleva, crece mientras se mantiene arriba, y baja
           const BW = gsap.utils.clamp(0.08, 0.7, (520 / travel) * RUN_DUR)
-          tl.to(dinoRef.current, { y: -BIRD_LIFT, ease: 'power2.out', duration: BW * 0.35 }, T - BW * 0.55)
+          tl.to(dinoRef.current, { y: -BIRD_LIFT, scale: JUMP_SCALE, ease: 'power2.out', duration: BW * 0.35 }, T - BW * 0.55)
           tl.to(dinoRef.current, { y: -BIRD_LIFT, duration: BW * 0.30 }, T - BW * 0.20) // se mantiene arriba
-          tl.to(dinoRef.current, { y: 0,          ease: 'power2.in',  duration: BW * 0.35 }, T + BW * 0.15)
+          tl.to(dinoRef.current, { y: 0, scale: 1, ease: 'power2.in', duration: BW * 0.35 }, T + BW * 0.15)
         }
       })
     }, sectionRef)
 
-    return () => ctx.revert()
+    return () => {
+      if (overlayTicker) gsap.ticker.remove(overlayTicker)
+      ctx.revert()
+    }
   }, [repos, loading, vpKey])
 
   const H2 = {
@@ -407,31 +507,20 @@ export default function ProjectsSection() {
     letterSpacing: '-0.02em', userSelect: 'none', whiteSpace: 'nowrap',
   }
 
-  const obstacles = repos.map((repo, i) => ({ repo, type: obstacleType(i) }))
+  const obstacles = repos.slice(0, 4).map((repo, i) => ({ repo, type: obstacleType(i) }))
+  const findRepo = (needle, fallbackIndex) => repos.find(repo => repo.name.toLowerCase().includes(needle)) || repos[fallbackIndex]
+  const project1 = findRepo('surq', 0)      // surqo
+  const project2 = findRepo('mylife', 1)    // mylife-hub
+  const project3 = findRepo('auth', 2)      // auth-service
+  const project4 = findRepo('donde', 3)     // donde-oscar (GPS)
+  const project5 = findRepo('redis', 4)     // redis-cache-aside-catalog
 
   return (
-    <section ref={sectionRef} style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <section id="projects" ref={sectionRef} style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
 
       {/* ── Fondos ── */}
       <div ref={blackBgRef} style={{ position: 'absolute', inset: 0, zIndex: 0, background: '#000', clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
       <div ref={whiteBgRef} style={{ position: 'absolute', inset: 0, zIndex: 1, background: '#fff', clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%, 100% 0%)' }} />
-
-      {/* ── Nubes decorativas (zona cielo) ── */}
-      {[
-        { left: '12%', top: '12%', scale: 1 },
-        { left: '38%', top: '7%',  scale: 0.7 },
-        { left: '65%', top: '15%', scale: 0.85 },
-      ].map((c, i) => (
-        <svg key={i} width={90 * c.scale} height={36 * c.scale}
-          viewBox="0 0 90 36" xmlns="http://www.w3.org/2000/svg"
-          style={{ position: 'absolute', left: c.left, top: c.top, zIndex: 2, pointerEvents: 'none', opacity: 0.1 }}
-        >
-          <rect x="10" y="18" width="70" height="12" rx="4" fill="#000"/>
-          <rect x="20" y="10" width="22" height="14" rx="5" fill="#000"/>
-          <rect x="38" y="6"  width="26" height="16" rx="6" fill="#000"/>
-          <rect x="58" y="12" width="18" height="12" rx="4" fill="#000"/>
-        </svg>
-      ))}
 
       {/* ── Texto (encima de fondos) ── */}
       <div ref={titleWhiteRef} style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none', background: '#000', clipPath: 'polygon(0 0, 100% 0, 0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -459,12 +548,54 @@ export default function ProjectsSection() {
         zIndex: 5,
         display: 'flex',
         alignItems: 'flex-end',
-        paddingLeft: '42vw',
+        paddingLeft: '18vw',
         willChange: 'transform',
         pointerEvents: 'none',
       }}>
         {!loading && obstacles.map(({ repo, type }, i) => (
           <div key={repo.name} style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', flex: '0 0 auto' }}>
+            {/* Entre el primer cactus y la primera escalera: dos proyectos,
+                el segundo un poco más arriba para que no queden alineados */}
+            {i === 1 && project1 && (
+              <div style={{ flex: '0 0 auto', marginRight: GAP_CARD, marginBottom: SPACE_LOW, pointerEvents: 'auto' }}>
+                <ProjectRevealCard repo={project1} label="project" />
+              </div>
+            )}
+            {i === 1 && project2 && (
+              <div style={{ flex: '0 0 auto', marginRight: GAP_CARD, marginBottom: SPACE_HIGH, pointerEvents: 'auto' }}>
+                <ProjectRevealCard repo={project2} label="project" />
+              </div>
+            )}
+            {/* Escalera de cuadros — decoración visible junto al segundo cactus */}
+            {i === 1 && (
+              <div data-board-decor style={{ flex: '0 0 auto', marginLeft: BOARD_GAP, marginRight: GAP_SMALL, marginBottom: SPACE_BOARD, position: 'relative', zIndex: 7, pointerEvents: 'none' }}>
+                <FeaturedProjectCard size={CUBE_SIZE_1} />
+              </div>
+            )}
+            {/* Entre el segundo y el tercer cactus: otros dos proyectos */}
+            {i === 2 && project3 && (
+              <div style={{ flex: '0 0 auto', marginRight: GAP_CARD, marginBottom: SPACE_LOW, pointerEvents: 'auto' }}>
+                <ProjectRevealCard repo={project3} label="project" />
+              </div>
+            )}
+            {i === 2 && project4 && (
+              <div style={{ flex: '0 0 auto', marginRight: GAP_CARD, marginBottom: SPACE_HIGH, pointerEvents: 'auto' }}>
+                <ProjectRevealCard repo={project4} label="project" />
+              </div>
+            )}
+            {/* Segunda escalera de cuadros, antes del cuarto cactus — patrón
+                distinto (cruz compacta) para que no se vea igual que la primera */}
+            {i === 3 && (
+              <div style={{ flex: '0 0 auto', marginRight: GAP_SMALL, marginBottom: SPACE_BOARD, position: 'relative', zIndex: 7, pointerEvents: 'none' }}>
+                <FeaturedProjectCard size={CUBE_SIZE_2} steps={CROSS_STEPS} />
+              </div>
+            )}
+            {/* Último proyecto, junto a la segunda escalera */}
+            {i === 3 && project5 && (
+              <div style={{ flex: '0 0 auto', marginRight: GAP_CARD * 1.6, marginBottom: SPACE_LOW, pointerEvents: 'auto' }}>
+                <ProjectRevealCard repo={project5} label="project" />
+              </div>
+            )}
             {/* Obstáculo */}
             {type === 'cactus' ? (
               <div data-obstacle data-type="cactus" style={{ flex: '0 0 auto', marginRight: OBSTACLE_GAP, marginBottom: -CACTUS_DROP }}>
@@ -475,21 +606,19 @@ export default function ProjectsSection() {
                 <BirdSVG className="bird-el" width={BIRD_W} height={BIRD_H} />
               </div>
             )}
-
-            {/* Nube-proyecto — flota en el cielo, sobre el tramo libre donde corre el dino tras el obstáculo */}
-            <div style={{
-              position: 'absolute',
-              left: 0, right: 0,
-              bottom: CLOUD_BOTTOM,
-              display: 'flex', justifyContent: 'center',
-              pointerEvents: 'none',
-            }}>
-              <div style={{ pointerEvents: 'auto' }}>
-                <CloudCard repo={repo} />
-              </div>
-            </div>
           </div>
         ))}
+
+        {/* Cuadro final — vive después del último obstáculo, así que cuando la
+            carrera termina ya está asentado en una posición de pantalla
+            válida. Es el cuadro visible del que arranca el crecimiento a
+            pantalla completa (la escalera decorativa de antes es solo
+            ambientación, junto al segundo cactus). */}
+        {!loading && (
+          <div ref={cardRef} style={{ flex: '0 0 auto', marginRight: GAP_CARD * 1.3, marginBottom: SPACE_HIGH, position: 'relative', zIndex: 7, pointerEvents: 'none' }}>
+            <div data-bottom-cell="true" style={{ width: CUBE_SIZE_1, height: CUBE_SIZE_1, background: '#000' }} />
+          </div>
+        )}
 
         {/* Bloque final */}
         <div style={{ flex: '0 0 auto', width: '40vw', display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '3rem', paddingLeft: '1rem', pointerEvents: 'auto' }}>
@@ -497,6 +626,26 @@ export default function ProjectsSection() {
           <a href="https://github.com/ricardomb-tech" target="_blank" rel="noopener noreferrer" style={{ fontFamily: '"Inter",sans-serif', fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.3)', textDecoration: 'none', borderBottom: '1px solid rgba(0,0,0,0.15)', paddingBottom: '1px', width: 'fit-content' }}>github.com/ricardomb-tech →</a>
         </div>
       </div>
+
+      {/* Overlay que crece desde el cuadro data-bottom-cell hasta pantalla completa.
+          Debe vivir FUERA del árbol de worldRef: worldRef recibe un transform (x)
+          animado por GSAP, y un ancestro con transform vuelve `position: fixed`
+          relativo a ese ancestro en vez de al viewport, lo que rompía el efecto
+          (el overlay se movía y recortaba junto con el mundo en vez de cubrir
+          la pantalla real). Aquí, como hijo directo de la sección pineada
+          (que sí coincide con el viewport durante el pin), el fixed funciona. */}
+      <div
+        ref={overlayRef}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: '#000',
+          zIndex: 9999,
+          pointerEvents: 'none',
+          clipPath: 'inset(100% 100% 100% 100%)',
+          opacity: 1,
+        }}
+      />
 
       {/* ── Dino — fijo, corre en su sitio; el mundo pasa por debajo/detrás ── */}
       <div ref={dinoRef} style={{

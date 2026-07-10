@@ -16,6 +16,7 @@ const FALLBACK = [
   { name: 'donde-oscar', description: 'App de localización en tiempo real para seguimiento de personas con IoT.', homepage: null, html_url: 'https://github.com/ricardomb-tech/donde-oscar', stars: 0, languages: ['TypeScript', 'CSS'], updated: '' },
   { name: 'lash_lessa', description: 'Landing page y sistema de reservas para estudio de belleza. Diseño moderno y responsivo.', homepage: null, html_url: 'https://github.com/ricardomb-tech/lash_lessa', stars: 0, languages: ['TypeScript', 'CSS'], updated: '' },
   { name: 'cielito-lindo', description: 'Sitio web para restaurante con menú interactivo, reservas y administración.', homepage: null, html_url: 'https://github.com/ricardomb-tech/cielito-lindo', stars: 0, languages: ['TypeScript', 'HTML'], updated: '' },
+  { name: 'redis-cache-aside-catalog', description: 'Servicio de catálogo con patrón cache-aside sobre Redis para reducir la carga de la base de datos y acelerar las lecturas.', homepage: null, html_url: 'https://github.com/ricardomb-tech/redis-cache-aside-catalog', stars: 0, languages: ['Java', 'Redis', 'PostgreSQL'], updated: '' },
 ]
 
 const CACHE_KEY = 'gh_repos_cache'
