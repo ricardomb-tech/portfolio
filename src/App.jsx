@@ -4,6 +4,7 @@ import HeroSection from './components/HeroSection'
 import AboutSection from './components/AboutSection'
 import CategoriesIntro from './components/CategoriesIntro'
 import ProjectsSection from './components/ProjectsSection'
+import OutroSection from './components/OutroSection'
 
 export default function App() {
   // Las secciones usan la fuente "AldoTheApache" en encabezados grandes. Si
@@ -21,6 +22,7 @@ export default function App() {
       <AboutSection />
       <CategoriesIntro />
       <ProjectsSection />
+      <OutroSection />
     </>
   )
 }

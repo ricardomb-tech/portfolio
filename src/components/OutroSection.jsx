@@ -1,18 +1,21 @@
-import { useRef, useLayoutEffect } from 'react'
+import { useRef, useState, useLayoutEffect } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import DarkMatterOrb from './DarkMatterOrb'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const PARAGRAPHS = [
-  'I am Ricardo Martinez, backend developer with over 3 years building scalable systems powered by AI and IoT.',
+  'Soy desarrollador de software apasionado por crear soluciones innovadoras, limpias y eficientes. Me especializo en aplicaciones web y móviles, arquitecturas de microservicios y soluciones IoT, cuidando siempre la calidad del código y la experiencia del usuario.',
+  'Trabajo con tecnologías modernas y metodologías ágiles, y disfruto cada proyecto con dedicación, alegría y compromiso. Creo en la transparencia, el trabajo en equipo y en construir cosas que dejen algo bueno en la vida de las personas.',
+  'Mi meta es simple: seguir creciendo, aprender cada día y aportar valor con una sonrisa.',
 ].map(p => p.split(' '))
 
-export default function AboutSection() {
+export default function OutroSection() {
   const sectionRef = useRef(null)
   const labelRef   = useRef(null)
   const textRef    = useRef(null)
+  const photoRef   = useRef(null)
+  const [photoOk, setPhotoOk] = useState(true)
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -20,6 +23,7 @@ export default function AboutSection() {
 
       gsap.set(labelRef.current, { opacity: 0, y: 12 })
       gsap.set(inners, { y: '110%', color: 'rgba(255,255,255,0.08)' })
+      gsap.set(photoRef.current, { opacity: 0, y: 24 })
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -30,9 +34,8 @@ export default function AboutSection() {
         },
       })
 
-      tl.to(labelRef.current, {
-        opacity: 1, y: 0, ease: 'none', duration: 0.5,
-      })
+      tl.to(labelRef.current, { opacity: 1, y: 0, ease: 'none', duration: 0.5 })
+      tl.to(photoRef.current, { opacity: 1, y: 0, ease: 'none', duration: 0.5 }, '-=0.3')
       tl.to(inners, {
         y: '0%',
         color: 'rgba(255,255,255,0.88)',
@@ -47,7 +50,7 @@ export default function AboutSection() {
 
   return (
     <section
-      id="about"
+      id="outro"
       ref={sectionRef}
       style={{
         minHeight: '100vh',
@@ -73,7 +76,7 @@ export default function AboutSection() {
           textTransform: 'uppercase',
         }}
       >
-        (About)
+        (Ricardo)
       </span>
 
       {/* Texto — col izquierda */}
@@ -92,11 +95,11 @@ export default function AboutSection() {
             style={{
               fontFamily: '"Inter", "Helvetica Neue", Arial, sans-serif',
               fontWeight: 700,
-              fontSize: 'clamp(1.8rem, 4.5vw, 4.2rem)',
-              lineHeight: 1.25,
+              fontSize: 'clamp(1.05rem, 2.1vw, 1.7rem)',
+              lineHeight: 1.4,
               color: 'rgba(255,255,255,0.88)',
               margin: 0,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.01em',
             }}
           >
             {words.map((word, i) => (
@@ -118,9 +121,54 @@ export default function AboutSection() {
         ))}
       </div>
 
-      {/* Orb — right col */}
-      <div style={{ flex: '0 0 40%', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'clamp(320px, 42vw, 560px)' }}>
-        <DarkMatterOrb />
+      {/* Foto — col derecha */}
+      <div
+        ref={photoRef}
+        style={{
+          flex: '0 0 40%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: 'clamp(320px, 42vw, 560px)',
+        }}
+      >
+        {photoOk ? (
+          <img
+            src="/about-photo.jpg"
+            alt="Ricardo Martinez"
+            onError={() => setPhotoOk(false)}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              filter: 'grayscale(1)',
+              WebkitMaskImage: 'radial-gradient(ellipse 70% 70% at center, #000 55%, transparent 100%)',
+              maskImage: 'radial-gradient(ellipse 70% 70% at center, #000 55%, transparent 100%)',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              border: '1px dashed rgba(255,255,255,0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: '"Inter", sans-serif',
+              fontSize: '0.75rem',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.35)',
+              textAlign: 'center',
+              padding: '1rem',
+            }}
+          >
+            foto pendiente —
+            <br />
+            public/about-photo.jpg
+          </div>
+        )}
       </div>
     </section>
   )

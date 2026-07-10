@@ -284,6 +284,7 @@ export default function ProjectsSection() {
   const groundRef     = useRef(null)
   const cardRef       = useRef(null)
   const overlayRef    = useRef(null)
+  const whiteDinoRef  = useRef(null)
   const { repos, loading } = useGithubRepos()
   const [vpKey, setVpKey] = useState(0)
 
@@ -315,7 +316,8 @@ export default function ProjectsSection() {
   // rem fijo, que no crecía con el resto de la escena en pantallas grandes).
   const SPACE_LOW   = 176 * scale // proyecto "bajo"
   const SPACE_HIGH  = 232 * scale // proyecto "alto" (desalineado)
-  const SPACE_BOARD = 96  * scale // debajo de las escaleras de cuadros
+  const SPACE_BOARD  = 96  * scale // debajo de la primera escalera (diagonal)
+  const SPACE_BOARD_2 = 160 * scale // debajo de la segunda escalera (cruz) — más arriba
   const GAP_CARD    = 48  * scale // ~3rem: entre tarjetas de proyecto
   const GAP_SMALL   = 32  * scale // ~2rem
 
@@ -352,21 +354,35 @@ export default function ProjectsSection() {
       // Reparto del scroll entre intro (transición), carrera y crecimiento final
       const introScroll = vh * 0.9
       const GROW_SCROLL = vh * 0.7   // scroll dedicado al cuadro creciendo a pantalla completa
+      // Colchón de scroll pineado DESPUÉS de que el efecto llega a p=1.
+      // p=1 SIEMPRE coincide exactamente con el scroll `end` del ScrollTrigger
+      // (así funciona scrub), así que agregar buffer solo a `end` no crea
+      // ningún margen — mueve el punto p=1 proporcionalmente con él. Para
+      // que quede tiempo pineado de sobra DESPUÉS de p=1, hace falta un tween
+      // vacío que estire tl.duration() sin mover cuándo se alcanza p=1 (ver
+      // más abajo, junto al ticker del overlay). Sin este colchón,
+      // `anticipatePin` libera el pin unos ~150px antes de que el negro
+      // termine de crecer, y el dino blanco se dibuja ya sin `position:
+      // fixed` — rompiendo su posición en pantalla.
+      const END_BUFFER     = vh * 0.4
       const INTRO_DUR   = 0.55
       const RUN_START   = 0.55
       const RUN_DUR     = INTRO_DUR * (travel / introScroll)
       const GROW_DUR    = INTRO_DUR * (GROW_SCROLL / introScroll)
+      const END_BUFFER_DUR = INTRO_DUR * (END_BUFFER / introScroll)
 
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: `+=${introScroll + travel + GROW_SCROLL}`,
+          end: `+=${introScroll + travel + GROW_SCROLL + END_BUFFER}`,
           scrub: 1,
           pin: true,
           anticipatePin: 1,
         },
       })
+      window.__debugTl = tl
+      window.__debugGeo = { RUN_START, RUN_DUR, GROW_DUR, END_BUFFER_DUR, introScroll, travel, GROW_SCROLL, END_BUFFER }
 
       // Estado inicial
       gsap.set(dinoRef.current, { scaleY: 0, scaleX: 1, y: 0, transformOrigin: 'bottom center' })
@@ -412,6 +428,7 @@ export default function ProjectsSection() {
           const fadeStart = RUN_START + RUN_DUR
           const fadeDur   = GROW_DUR
           gsap.set(overlayRef.current, { clipPath: 'inset(100% 0% 0% 100%)', opacity: 1 })
+          gsap.set(whiteDinoRef.current, { opacity: 0, scale: 0.85, transformOrigin: 'center center' })
 
           // Crear un objeto de progreso que el timeline scrub controla
           const state = { progress: 0 }
@@ -421,6 +438,13 @@ export default function ProjectsSection() {
             ease: 'power2.in',
             duration: fadeDur,
           }, fadeStart)
+
+          // Tween vacío que solo alarga tl.duration() (y por lo tanto el
+          // scroll `end` del pin) sin animar nada. Esto deja el pin activo
+          // un rato DESPUÉS de que p llega a 1, para que el negro completo y
+          // el dino blanco terminen de dibujarse mientras la sección todavía
+          // es `position: fixed` (ver nota junto a END_BUFFER más arriba).
+          tl.to({}, { duration: END_BUFFER_DUR }, fadeStart + fadeDur)
 
           // El mundo ya está detenido cuando arranca el fundido (termina en
           // fadeStart), así que la posición del cuadro es estable. Aun así se
@@ -434,9 +458,19 @@ export default function ProjectsSection() {
             if (state.progress <= 0) {
               if (anchorRect) overlayRef.current.style.clipPath = 'inset(100% 0% 0% 100%)'
               anchorRect = null
+              if (whiteDinoRef.current) gsap.set(whiteDinoRef.current, { opacity: 0, scale: 0.85 })
               return
             }
             const p = state.progress
+
+            // El dino blanco solo aparece una vez la pantalla ya está
+            // prácticamente negra (últimos 15% del crecimiento), y se
+            // desvanece de nuevo si el usuario vuelve hacia atrás.
+            if (whiteDinoRef.current) {
+              const dinoP = gsap.utils.clamp(0, 1, (p - 0.85) / 0.15)
+              whiteDinoRef.current.style.opacity = dinoP
+              whiteDinoRef.current.style.transform = `scale(${0.85 + dinoP * 0.15})`
+            }
             if (!anchorRect) {
               const r0 = bottomCellEl.getBoundingClientRect()
               anchorRect = { top: r0.top, left: r0.left, right: r0.right, bottom: r0.bottom }
@@ -458,8 +492,13 @@ export default function ProjectsSection() {
             overlayRef.current.style.clipPath =
               `inset(${iTop}px ${iRight}px ${iBottom}px ${iLeft}px)`
 
-            // Cuando termina, limpiamos el ticker
-            if (p >= 1) gsap.ticker.remove(ticker)
+            // El ticker se queda registrado incluso al llegar a p=1: el
+            // scroll es reversible, así que si el usuario vuelve hacia
+            // atrás necesita seguir recalculando el clip-path para que el
+            // negro se achique de nuevo. Antes se desregistraba aquí mismo,
+            // dejando el overlay trabado en negro para siempre tras llegar
+            // al final una vez. Solo se limpia de verdad en el cleanup del
+            // efecto (unmount/resize).
           })
           overlayTicker = ticker
 
@@ -586,7 +625,7 @@ export default function ProjectsSection() {
             {/* Segunda escalera de cuadros, antes del cuarto cactus — patrón
                 distinto (cruz compacta) para que no se vea igual que la primera */}
             {i === 3 && (
-              <div style={{ flex: '0 0 auto', marginRight: GAP_SMALL, marginBottom: SPACE_BOARD, position: 'relative', zIndex: 7, pointerEvents: 'none' }}>
+              <div style={{ flex: '0 0 auto', marginRight: GAP_SMALL, marginBottom: SPACE_BOARD_2, position: 'relative', zIndex: 7, pointerEvents: 'none' }}>
                 <FeaturedProjectCard size={CUBE_SIZE_2} steps={CROSS_STEPS} />
               </div>
             )}
@@ -646,6 +685,29 @@ export default function ProjectsSection() {
           opacity: 1,
         }}
       />
+
+      {/* Dino blanco — aparece recién cuando el overlay ya está prácticamente
+          a pantalla completa, encima de él (z-index mayor). Mismo trazado
+          que el dino negro, con los colores invertidos. */}
+      <div
+        ref={whiteDinoRef}
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          marginLeft: -DINO_W * 1.3 / 2,
+          marginTop: -DINO_H * 1.3 / 2,
+          width: DINO_W * 1.3,
+          height: DINO_H * 1.3,
+          zIndex: 10000,
+          pointerEvents: 'none',
+        }}
+      >
+        <svg viewBox="13.848 0 283.645 305.4" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+          <path d="M269.352 91.664h-42.436V80.04h70.577v-65.73h-14.294V0H168.4v14.309h-13.848v91.664H140.26v13.861h-20.994v14.309H98.271v14.308H83.977v13.862H58.069v-14.309H44.222v-13.861H29.928v-28.17h-16.08v86.746h13.847v14.308h14.293v13.862h13.848v14.308H70.13v13.862h13.847v56.34h30.375V289.3h-13.848V277.23h13.848v-13.862h14.294V249.06h11.613v14.308h14.294V305.4h30.375V289.3h-14.294v-54.104h14.294V220.89h13.847v-21.016h14.294v-49.186h11.614v13.862h16.527v-30.406h-28.14v-25.934h56.282z" fill="#fff"/>
+          <path d="M182.248 20.569h16.974V37.56h-16.974z" fill="#000"/>
+        </svg>
+      </div>
 
       {/* ── Dino — fijo, corre en su sitio; el mundo pasa por debajo/detrás ── */}
       <div ref={dinoRef} style={{

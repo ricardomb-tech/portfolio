@@ -6,6 +6,7 @@ const LINKS = [
   { id: 'about',    label: 'ABOUT' },
   { id: 'skills',   label: 'SKILLS' },
   { id: 'projects', label: 'PROJECTS' },
+  { id: 'outro',    label: 'CONTACT' },
 ]
 
 export default function Navbar() {
@@ -114,7 +115,10 @@ export default function Navbar() {
       </nav>
 
       {/* Menú a pantalla completa — panel sólido, fuera del mix-blend-mode
-          del nav (necesita ser opaco y legible sobre cualquier fondo). */}
+          del nav (necesita ser opaco y legible sobre cualquier fondo). Su
+          z-index (100) es mayor al del nav (50), así que tapa por completo
+          al botón hamburguesa/X de ahí abajo — por eso lleva su propio botón
+          de cierre explícito, no solo el ícono que gira a X en el nav. */}
       <div
         ref={overlayRef}
         style={{
@@ -130,6 +134,25 @@ export default function Navbar() {
           padding: 'clamp(2rem, 8vw, 8rem)',
         }}
       >
+        <button
+          onClick={() => setOpen(false)}
+          aria-label="Cerrar menú"
+          style={{
+            position: 'absolute',
+            top: '1.4rem',
+            left: '2rem',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '4px',
+            width: 24,
+            height: 24,
+          }}
+        >
+          <span style={{ position: 'absolute', top: '50%', left: '50%', width: 24, height: 1.5, background: '#fff', transform: 'translate(-50%,-50%) rotate(45deg)' }} />
+          <span style={{ position: 'absolute', top: '50%', left: '50%', width: 24, height: 1.5, background: '#fff', transform: 'translate(-50%,-50%) rotate(-45deg)' }} />
+        </button>
+
         {LINKS.map((link, i) => (
           <button
             key={link.id}
